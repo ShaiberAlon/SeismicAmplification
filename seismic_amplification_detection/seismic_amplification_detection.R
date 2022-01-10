@@ -68,9 +68,15 @@ detect_seismic_amplification <- function(cnv, sv, chrBands, minInternalSVs=14, p
     cnv = cnv[!(seqnames(cnv) %in% c("chrX","chrY"))]
   }
   
+  # fix seqlengths to match
+  sl1 = seqlengths(cnv)
+  seqlengths(regionFilter) = sl1
   # remove cnvs overlapping with telomeres or centromeres
   cnv = filter_cnv(cnv, regionFilter)
   # add chromosome arm to chromosome names
+
+  # fix seqlengths to match
+  seqlengths(chrArms) = sl1
   cnv = chr2chrArm(cnv, chrs, chrArms)
   cnv_segments = cnv
   cnv_segments_amp = cnv[cnv$type == "amp"]
@@ -82,6 +88,8 @@ detect_seismic_amplification <- function(cnv, sv, chrBands, minInternalSVs=14, p
     # split svs into individual breakpoint objects (easier to compute sv overlaps with cnvs)
     bp1 = GRanges(sv$chr1, IRanges(sv$bp1, sv$bp1))
     bp2 = GRanges(sv$chr2, IRanges(sv$bp2, sv$bp2))
+    seqlengths(bp1) = sl1[seqlevels(bp1)]
+    seqlengths(bp2) = sl1[seqlevels(bp2)]
     
     # remove svs overlapping with telomeres or centromeres
     idx = ((countOverlaps(bp1, regionFilter) == 0) & (countOverlaps(bp2, regionFilter) == 0))
@@ -365,7 +373,7 @@ get_connected_regions <- function(gr, bp1, bp2, tol=5000){
       connectedAmp[[i]] = c(connectedAmp[[i]], gr_connectedAmp$id)
     }
     m = sapply(connectedAmp,function(x) sapply(connectedAmp,function(y) length(intersect(x,y))>0))
-    amps = groups(components(graph_from_adjacency_matrix(m)))
+    amps = igraph::groups(components(graph_from_adjacency_matrix(m)))
     ampIDs = vector(mode="numeric", length=length(gr))
     for(i in 1:length(amps)){
       ampsi = amps[[i]]
