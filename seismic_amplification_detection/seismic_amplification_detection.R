@@ -70,13 +70,13 @@ detect_seismic_amplification <- function(cnv, sv, chrBands, minInternalSVs=14, p
   
   # fix seqlengths to match
   sl1 = seqlengths(cnv)
-  seqlengths(regionFilter) = sl1
+  seqlengths(regionFilter) = sl1[seqlevels(regionFilter)]
   # remove cnvs overlapping with telomeres or centromeres
   cnv = filter_cnv(cnv, regionFilter)
   # add chromosome arm to chromosome names
 
   # fix seqlengths to match
-  seqlengths(chrArms) = sl1
+  seqlengths(chrArms) = sl1[seqlevels(chrArms)]
   cnv = chr2chrArm(cnv, chrs, chrArms)
   cnv_segments = cnv
   cnv_segments_amp = cnv[cnv$type == "amp"]
@@ -302,8 +302,8 @@ filter_cnv <- function(gr1, gr2){
 # GRanges object gr with modified seqnames and seqlevels
 chr2chrArm <- function(gr, chrs, chrArms){
   o = findOverlaps(gr, chrArms)
-  seqlevels(gr) = c(chrs, chrArms$name)
-  seqnames(gr) = Rle(factor(paste0(seqnames(gr), chrArms[subjectHits(o)]$arm), levels=c(chrs, chrArms$name)))
+  seqlevels(gr, pruning.mode="coarse") = c(chrs, chrArms$name)
+  seqnames(gr) = Rle(factor(paste0(seqnames(gr), chrArms[subjectHits(o)[!duplicated(queryHits(o))]]$arm), levels=c(chrs, chrArms$name)))
   gr = dropSeqlevels(gr, chrs)
   return(gr)
 }
