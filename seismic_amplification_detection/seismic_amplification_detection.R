@@ -123,7 +123,7 @@ detect_seismic_amplification <- function(cnv, sv, chrBands, minInternalSVs=14, p
     # seismic regions are computed from the union of sv spans (the interval between start and end of an sv)
     # (a) sv spans of intra-chromosomal svs
     idx = which(seqnames(bp1) == seqnames(bp2))
-    svRangeIntra = GRanges(seqnames(bp1[idx]), IRanges(start(bp1)[idx], end(bp2[idx])))
+    svRangeIntra = GRanges(seqnames(bp1[idx]), IRanges(pmin(start(bp1)[idx], end(bp2[idx])), pmax(start(bp1)[idx], end(bp2[idx]))))
     # (b) sv spans of inter-chromosomal svs
     # compute the span as the region between one breakpoint and the next neightbouring breakpoint of another sv on the same amplified region
     idx = which(seqnames(bp1) != seqnames(bp2))
